@@ -1,0 +1,81 @@
+So, you have created an Application on TTN.
+
+And registered your device to it, putting the values into config.h
+
+Now you need to convert the data this device sends to ttn, into
+the values that ttnmapper.org wants.
+
+First enable 'TTN Mapper' integration, and set the port filter to '2'
+
+As this code sends all packets that contain a GPS fix to that port.
+It will send wifi access point only matches to port 3, but thats
+a project for another time to convert those to GPS location.
+
+Now in 'Payload Formats' we add a custom 'decoder'
+
+
+--- cut and paste ---
+function decode_gps(bytes)
+{
+  var decoded = {};
+  decoded.latitude = ((bytes[0]<<16)>>>0) + ((bytes[1]<<8)>>>0) + bytes[2];
+  decoded.latitude = (decoded.latitude / 16777215.0 * 180) - 90;
+  
+  decoded.longitude = ((bytes[3]<<16)>>>0) + ((bytes[4]<<8)>>>0) + bytes[5];
+  decoded.longitude = (decoded.longitude / 16777215.0 * 360) - 180;
+  
+  var altValue = ((bytes[6]<<8)>>>0) + bytes[7];
+  var sign = bytes[6] & (1 << 7);
+  if(sign) {
+    decoded.altitude = 0xFFFF0000 | altValue;
+  } else {
+    decoded.altitude = altValue;
+  }
+  
+  decoded.hdop = bytes[8] / 10.0;
+  decoded.sats = bytes[9];
+ 
+  return decoded;
+}
+
+function decode_wifi(bytes)
+{
+  var decoded = {};
+  var len = bytes.length;
+  decoded.rawlength = len;
+  decoded.apcount = len / 7;
+  decoded.wifiAccessPoints = [];
+  
+  var i = 0;
+  while (i<len) {
+    var ap = {};
+    ap.signalStrength = bytes[i] & 0x7F;
+    if (bytes[i] & 0x80) ap.signalStrength -= 128;
+    var mac = "";
+    for (var n=0; n<6; n++) {
+      if (n > 0) mac += ":";
+      mac += bytes[i+n+1].toString(16);
+    }
+    ap.macAddress = mac;
+    decoded.wifiAccessPoints.push(ap);
+    i += 7;
+  }
+  return decoded;
+}
+
+function Decoder(bytes, port) {
+  // Decode an uplink message from a buffer
+  // (array) of bytes to an object of fields.
+  var decoded = {};
+
+  if (port === 3) {
+    decoded = decode_wifi(bytes);
+  } else
+  if (port === 2) {
+    decoded = decode_gps(bytes);
+  } else {
+    decoded.raw = bytes;
+  }
+  
+  return decoded;
+}
