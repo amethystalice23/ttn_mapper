@@ -61,7 +61,8 @@ static const PROGMEM u1_t APPKEY[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0
  */
 
 // Device address (DevAddr) (msb order, mushed into one value)
-static const u4_t DEVADDR = 0x2601185E;
+// Again, hit the random button, or make up your own
+static const u4_t DEVADDR = 0xDEADBEEF;
 
 // network session key (msb order)
 static const PROGMEM u1_t NWKSKEY[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
@@ -78,10 +79,12 @@ static const u1_t PROGMEM APPSKEY[16] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x
 
 #ifdef BOARD_HELTEC   
 //  Heltec LoRa 32 Board 
+
+// Where did we attach the GPS ? 
 #define GPS_RX 12
 #define GPS_TX 13
 
-// the OLED used
+// the OLED screen on the heltec is here
 U8X8_SSD1306_128X64_NONAME_SW_I2C u8x8(/* clock=*/ 15, /* data=*/ 4, /* reset=*/ 16);
 
 // LoRa radio Pin mapping
@@ -95,10 +98,12 @@ const lmic_pinmap lmic_pins = {
 
 #ifdef BOARD_TTGO   
 //  TTGO LoRa board
+
+// GPS is attached here, pick any otherwise used pins
 #define GPS_RX 0
 #define GPS_TX 4
 
-// the OLED used
+// the OLED used on the TTGO
 U8X8_SSD1306_128X64_NONAME_SW_I2C u8x8(/* clock=*/ 22, /* data=*/ 21);
 
 // Pin mapping
