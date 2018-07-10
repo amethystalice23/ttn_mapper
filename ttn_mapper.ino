@@ -304,17 +304,16 @@ void do_send(osjob_t* j){
         // Prepare upstream data transmission at the next possible time.
         int port = build_packet();
 
-        if (port == 0) {
+        
+#ifdef FORCE_GPSLOCK
+        if (port !=2) {
           Serial.println("GPS location is not ready, waiting");
           u8x8.setCursor(0, 7);
           u8x8.printf("GPS Not Ready");
-#ifdef FORCE_GPSLOCK
           os_setTimedCallback(&sendjob, os_getTime()+sec2osticks(TX_INTERVAL), do_send);
           return;
-#else
-          txBufferLen = sprintf(txBuffer, "DUMMY");
-#endif
         }
+#endif
         
         LMIC_setTxData2(port, (uint8_t *)txBuffer, txBufferLen, 0);
         
